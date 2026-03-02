@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "bookmark-recipe-book",
+	"version": "${version}",
+	"name": "Bookmark recipe book",
+	"description": "Bookmark for the Recipe Book",
+	"authors": [
+		"Wighugan!"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "MPL",
+	"icon": "assets/bookmark-recipe-book/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.wighugan.bookmarkrecipebook.BookmarkRecipeBook"
+		],
+		"fabric-datagen": [
+			"net.wighugan.bookmarkrecipebook.BookmarkRecipeBookDataGenerator"
+		],
+		"client": [
+			"net.wighugan.bookmarkrecipebook.BookmarkRecipeBookClient"
+		]
+	},
+	"mixins": [
+		"bookmark-recipe-book.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.18.4",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
