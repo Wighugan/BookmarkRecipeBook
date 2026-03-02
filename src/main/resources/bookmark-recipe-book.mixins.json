@@ -5,7 +5,8 @@
 	"mixins": [
 	],
 	"client": [
-		"RecipeBookWidgetMixin"
+		"RecipeBookWidgetMixin",
+		"RecipeBookResultsMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
