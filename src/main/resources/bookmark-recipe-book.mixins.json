@@ -3,7 +3,9 @@
 	"package": "net.wighugan.bookmarkrecipebook.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
-		"ExampleMixin"
+	],
+	"client": [
+		"RecipeBookWidgetMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
