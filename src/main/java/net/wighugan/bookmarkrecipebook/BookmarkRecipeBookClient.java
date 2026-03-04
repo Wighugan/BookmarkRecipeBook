@@ -11,6 +11,7 @@ public class BookmarkRecipeBookClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
+        BookmarkManager.load();
         bookmarkKey = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.bookmark_recipe_book.bookmark", // The translation key
                 InputUtil.Type.KEYSYM, // Type of input

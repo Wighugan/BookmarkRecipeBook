@@ -25,6 +25,7 @@ import java.util.List;
 
 @Mixin(RecipeBookResults.class)
 public abstract class RecipeBookResultsMixin {
+    @Shadow private void refreshResultButtons() {}
     @Shadow @Final private List<AnimatedResultButton> resultButtons;
     @Shadow private int currentPage;
     @Shadow private int pageCount;
@@ -36,15 +37,20 @@ public abstract class RecipeBookResultsMixin {
     private void onRecipeContainerClicked(double mouseX, double mouseY, int button, int areaLeft, int areaTop, int areaWidth, int areaHeight, CallbackInfoReturnable<Boolean> cir) {
         if (button != 0) return;
 
-        boolean isCtrlPressed = BookmarkRecipeBookClient.bookmarkKey.isPressed() || Screen.hasControlDown();
+        net.minecraft.client.util.InputUtil.Key boundKey = net.minecraft.client.util.InputUtil.fromTranslationKey(BookmarkRecipeBookClient.bookmarkKey.getBoundKeyTranslationKey());
+        boolean isCustomKeyPressed = net.minecraft.client.util.InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), boundKey.getCode());
 
-        if (isCtrlPressed && this.resultButtons != null) {
+        if (isCustomKeyPressed && this.resultButtons != null) {
             for (AnimatedResultButton resultButton : this.resultButtons) {
                 if (resultButton.isMouseOver(mouseX, mouseY)) {
                     RecipeResultCollection collection = resultButton.getResultCollection();
                     if (collection != null && !collection.getAllRecipes().isEmpty()) {
                         RecipeEntry<?> recipe = collection.getAllRecipes().get(0);
                         BookmarkManager.toggleBookmark(recipe.id());
+                        if (BookmarkManager.isBookmarkModeActive) {
+                            this.refreshResultButtons();
+                            this.hideShowPageButtons();
+                        }
                     }
                     cir.setReturnValue(true);
                     return;
