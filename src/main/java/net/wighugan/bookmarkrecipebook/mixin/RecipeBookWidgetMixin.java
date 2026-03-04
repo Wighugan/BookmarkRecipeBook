@@ -22,11 +22,10 @@ public abstract class RecipeBookWidgetMixin {
 
     @Shadow private List<RecipeGroupButtonWidget> tabButtons;
     @Shadow public abstract boolean isOpen();
-
     @Shadow public abstract void refreshResults(boolean resetCurrentPage);
 
-    @Unique
-    private TexturedButtonWidget bookmarkTabButton;
+    @Unique private TexturedButtonWidget bookmarkTabButtonUnselected;
+    @Unique private TexturedButtonWidget bookmarkTabButtonSelected;
 
     @Inject(method = "reset", at = @At("TAIL"))
     private void onReset(CallbackInfo ci) {
@@ -34,17 +33,30 @@ public abstract class RecipeBookWidgetMixin {
 
         RecipeGroupButtonWidget lastTab = this.tabButtons.get(this.tabButtons.size() - 1);
 
-        ButtonTextures BOOKMARK_TEXTURES = new ButtonTextures(
+        ButtonTextures UNSELECTED_TEXTURES = new ButtonTextures(
                 Identifier.of("bookmark-recipe-book", "recipe_book/bookmark_tab"),
                 Identifier.of("bookmark-recipe-book", "recipe_book/bookmark_tab")
         );
 
-        this.bookmarkTabButton = new TexturedButtonWidget(
+        ButtonTextures SELECTED_TEXTURES = new ButtonTextures(
+                Identifier.of("bookmark-recipe-book", "recipe_book/bookmark_tab_selected"),
+                Identifier.of("bookmark-recipe-book", "recipe_book/bookmark_tab_selected")
+        );
+
+        this.bookmarkTabButtonUnselected = new TexturedButtonWidget(
                 0, 0, lastTab.getWidth(), lastTab.getHeight(),
-                BOOKMARK_TEXTURES,
+                UNSELECTED_TEXTURES,
                 button -> {
                     BookmarkManager.isBookmarkModeActive = true;
-                    System.out.println("[DEBUG] Bookmark Tab Clicked! Mode Active: " + BookmarkManager.isBookmarkModeActive);
+                    this.refreshResults(true);
+                }
+        );
+
+        this.bookmarkTabButtonSelected = new TexturedButtonWidget(
+                0, 0, lastTab.getWidth(), lastTab.getHeight(),
+                SELECTED_TEXTURES,
+                button -> {
+                    BookmarkManager.isBookmarkModeActive = true;
                     this.refreshResults(true);
                 }
         );
@@ -52,19 +64,25 @@ public abstract class RecipeBookWidgetMixin {
 
     @Inject(method = "render", at = @At("TAIL"))
     private void onRender(DrawContext context, int mouseX, int mouseY, float delta, CallbackInfo ci) {
-        if (this.isOpen() && this.bookmarkTabButton != null && this.tabButtons != null && !this.tabButtons.isEmpty()) {
+        if (this.isOpen() && this.bookmarkTabButtonUnselected != null && this.tabButtons != null && !this.tabButtons.isEmpty()) {
+            if (BookmarkManager.isBookmarkModeActive) {
+                for (RecipeGroupButtonWidget vanillaTab : this.tabButtons) {
+                    vanillaTab.setToggled(false);
+                }
+            }
             RecipeGroupButtonWidget lastTab = this.tabButtons.get(this.tabButtons.size() - 1);
-            this.bookmarkTabButton.setX(lastTab.getX());
-            this.bookmarkTabButton.setY(lastTab.getY() + 27);
-            this.bookmarkTabButton.render(context, mouseX, mouseY, delta);
+            TexturedButtonWidget activeTabButton = BookmarkManager.isBookmarkModeActive ? this.bookmarkTabButtonSelected : this.bookmarkTabButtonUnselected;
+            activeTabButton.setX(lastTab.getX());
+            activeTabButton.setY(lastTab.getY() + 27);
+            activeTabButton.render(context, mouseX, mouseY, delta);
         }
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (!this.isOpen()) return;
-
-        if (this.bookmarkTabButton != null && this.bookmarkTabButton.mouseClicked(mouseX, mouseY, button)) {
+        TexturedButtonWidget activeTabButton = BookmarkManager.isBookmarkModeActive ? this.bookmarkTabButtonSelected : this.bookmarkTabButtonUnselected;
+        if (activeTabButton != null && activeTabButton.mouseClicked(mouseX, mouseY, button)) {
             cir.setReturnValue(true);
             return;
         }
@@ -72,7 +90,11 @@ public abstract class RecipeBookWidgetMixin {
         if (this.tabButtons != null) {
             for (RecipeGroupButtonWidget vanillaTab : this.tabButtons) {
                 if (vanillaTab.mouseClicked(mouseX, mouseY, button)) {
-                    BookmarkManager.isBookmarkModeActive = false;
+                    if (BookmarkManager.isBookmarkModeActive) {
+                        BookmarkManager.isBookmarkModeActive = false;
+                        this.refreshResults(true);
+                        vanillaTab.setToggled(true);
+                    }
                 }
             }
         }
