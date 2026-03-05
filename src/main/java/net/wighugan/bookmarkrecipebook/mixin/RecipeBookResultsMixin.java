@@ -39,7 +39,9 @@ public abstract class RecipeBookResultsMixin {
 
         net.minecraft.client.util.InputUtil.Key boundKey = net.minecraft.client.util.InputUtil.fromTranslationKey(BookmarkRecipeBookClient.bookmarkKey.getBoundKeyTranslationKey());
         boolean isCustomKeyPressed = net.minecraft.client.util.InputUtil.isKeyPressed(MinecraftClient.getInstance().getWindow().getHandle(), boundKey.getCode());
-
+        if (boundKey.getCode() != -1) {
+            isCustomKeyPressed = net.minecraft.client.util.InputUtil.isKeyPressed(net.minecraft.client.MinecraftClient.getInstance().getWindow().getHandle(), boundKey.getCode());
+        }
         if (isCustomKeyPressed && this.resultButtons != null) {
             for (AnimatedResultButton resultButton : this.resultButtons) {
                 if (resultButton.isMouseOver(mouseX, mouseY)) {
@@ -59,7 +61,7 @@ public abstract class RecipeBookResultsMixin {
         }
     }
 
-    @Inject(method = "setResults", at = @At("HEAD"))
+    @Inject(method = "setResults", at = @At("HEAD"), cancellable = true)
     private void onSetResults(List<RecipeResultCollection> results, boolean resetCurrentPage, CallbackInfo ci) {
         if (BookmarkManager.isBookmarkModeActive) {
             // Force the results to only show bookmarked recipes
@@ -67,6 +69,8 @@ public abstract class RecipeBookResultsMixin {
             if (resetCurrentPage) {
                 this.currentPage = 0;
             }
+            this.refreshResultButtons();
+            ci.cancel();
         }
     }
 
@@ -76,12 +80,16 @@ public abstract class RecipeBookResultsMixin {
 
         ci.cancel();
 
+        if (this.resultButtons == null || this.resultButtons.isEmpty()) {
+            return;
+        }
+
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) return;
 
         List<RecipeResultCollection> bookmarked = getBookmarkedCollections();
 
-        this.pageCount = (int)Math.ceil((double)bookmarked.size() / (double)this.resultButtons.size());
+        this.pageCount = (int)Math.ceil((double)bookmarked.size() / 20.0);
         if (this.pageCount <= this.currentPage) {
             this.currentPage = 0;
         }

@@ -2,6 +2,7 @@ package net.wighugan.bookmarkrecipebook.mixin;
 
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ButtonTextures;
+import net.minecraft.client.gui.screen.recipebook.RecipeBookResults;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
 import net.minecraft.client.gui.screen.recipebook.RecipeGroupButtonWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
@@ -19,18 +20,22 @@ import java.util.List;
 
 @Mixin(RecipeBookWidget.class)
 public abstract class RecipeBookWidgetMixin {
-
     @Shadow private List<RecipeGroupButtonWidget> tabButtons;
     @Shadow public abstract boolean isOpen();
     @Shadow public abstract void refreshResults(boolean resetCurrentPage);
+    @Shadow private RecipeGroupButtonWidget currentTab;
 
     @Unique private TexturedButtonWidget bookmarkTabButtonUnselected;
     @Unique private TexturedButtonWidget bookmarkTabButtonSelected;
 
     @Inject(method = "reset", at = @At("TAIL"))
     private void onReset(CallbackInfo ci) {
+        BookmarkManager.isBookmarkModeActive = false;
+
         if (this.tabButtons == null || this.tabButtons.isEmpty()) return;
 
+        int tempWidth = this.tabButtons.get(0).getWidth();
+        int tempHeight = this.tabButtons.get(0).getHeight();
         RecipeGroupButtonWidget lastTab = this.tabButtons.get(this.tabButtons.size() - 1);
 
         ButtonTextures UNSELECTED_TEXTURES = new ButtonTextures(
@@ -44,21 +49,13 @@ public abstract class RecipeBookWidgetMixin {
         );
 
         this.bookmarkTabButtonUnselected = new TexturedButtonWidget(
-                0, 0, lastTab.getWidth(), lastTab.getHeight(),
-                UNSELECTED_TEXTURES,
-                button -> {
-                    BookmarkManager.isBookmarkModeActive = true;
-                    this.refreshResults(true);
-                }
+                0, 0, tempWidth, tempHeight, UNSELECTED_TEXTURES,
+                button -> this.onBookmarkTabClicked()
         );
 
         this.bookmarkTabButtonSelected = new TexturedButtonWidget(
-                0, 0, lastTab.getWidth(), lastTab.getHeight(),
-                SELECTED_TEXTURES,
-                button -> {
-                    BookmarkManager.isBookmarkModeActive = true;
-                    this.refreshResults(true);
-                }
+                0, 0, tempWidth, tempHeight, SELECTED_TEXTURES,
+                button -> this.onBookmarkTabClicked()
         );
     }
 
@@ -70,10 +67,8 @@ public abstract class RecipeBookWidgetMixin {
                     vanillaTab.setToggled(false);
                 }
             }
-            RecipeGroupButtonWidget lastTab = this.tabButtons.get(this.tabButtons.size() - 1);
+            this.updateBookmarkTabPosition();
             TexturedButtonWidget activeTabButton = BookmarkManager.isBookmarkModeActive ? this.bookmarkTabButtonSelected : this.bookmarkTabButtonUnselected;
-            activeTabButton.setX(lastTab.getX());
-            activeTabButton.setY(lastTab.getY() + 27);
             activeTabButton.render(context, mouseX, mouseY, delta);
         }
     }
@@ -81,6 +76,7 @@ public abstract class RecipeBookWidgetMixin {
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
     private void onMouseClicked(double mouseX, double mouseY, int button, CallbackInfoReturnable<Boolean> cir) {
         if (!this.isOpen()) return;
+        this.updateBookmarkTabPosition();
         TexturedButtonWidget activeTabButton = BookmarkManager.isBookmarkModeActive ? this.bookmarkTabButtonSelected : this.bookmarkTabButtonUnselected;
         if (activeTabButton != null && activeTabButton.mouseClicked(mouseX, mouseY, button)) {
             cir.setReturnValue(true);
@@ -97,6 +93,44 @@ public abstract class RecipeBookWidgetMixin {
                     }
                 }
             }
+        }
+    }
+
+    @Unique
+    private void onBookmarkTabClicked() {
+        BookmarkManager.isBookmarkModeActive = true;
+
+        if (this.currentTab == null && this.tabButtons != null) {
+            for (RecipeGroupButtonWidget tab : this.tabButtons) {
+                if (tab.visible) {
+                    this.currentTab = tab;
+                    break;
+                }
+            }
+        }
+        this.refreshResults(true);
+    }
+
+    @Unique
+    private void updateBookmarkTabPosition() {
+        if (this.tabButtons == null || this.bookmarkTabButtonUnselected == null || this.bookmarkTabButtonSelected == null) return;
+
+        RecipeGroupButtonWidget lastVisibleTab = null;
+
+        for (int i = this.tabButtons.size() - 1; i >= 0; i--) {
+            if (this.tabButtons.get(i).visible) {
+                lastVisibleTab = this.tabButtons.get(i);
+                break;
+            }
+        }
+
+        if (lastVisibleTab != null) {
+            int newX = lastVisibleTab.getX();
+            int newY = lastVisibleTab.getY() + 27;
+            this.bookmarkTabButtonUnselected.setX(newX);
+            this.bookmarkTabButtonUnselected.setY(newY);
+            this.bookmarkTabButtonSelected.setX(newX);
+            this.bookmarkTabButtonSelected.setY(newY);
         }
     }
 }

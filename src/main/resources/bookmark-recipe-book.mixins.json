@@ -6,7 +6,8 @@
 	],
 	"client": [
 		"RecipeBookWidgetMixin",
-		"RecipeBookResultsMixin"
+		"RecipeBookResultsMixin",
+		"AnimatedResultButtonMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
