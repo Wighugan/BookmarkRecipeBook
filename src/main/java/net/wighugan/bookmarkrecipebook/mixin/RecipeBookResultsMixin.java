@@ -83,25 +83,23 @@ public abstract class RecipeBookResultsMixin {
         if (this.resultButtons == null || this.resultButtons.isEmpty()) {
             return;
         }
-
-        MinecraftClient client = MinecraftClient.getInstance();
-        if (client.player == null) return;
-
         List<RecipeResultCollection> bookmarked = getBookmarkedCollections();
 
+        // hide the recipes require 3x3
+        bookmarked.removeIf(collection -> collection == null || collection.getAllRecipes().isEmpty());
+
         this.pageCount = (int)Math.ceil((double)bookmarked.size() / 20.0);
+        if (this.pageCount < 1) this.pageCount = 1;
         if (this.pageCount <= this.currentPage) {
             this.currentPage = 0;
         }
 
-        int startIndex = this.currentPage * this.resultButtons.size();
+        int startIndex = this.currentPage * 20;
         for (int i = 0; i < this.resultButtons.size(); i++) {
             AnimatedResultButton button = this.resultButtons.get(i);
             int recipeIndex = startIndex + i;
             if (recipeIndex < bookmarked.size()) {
-                RecipeResultCollection collection = bookmarked.get(recipeIndex);
-                // 'showRecipeCollection' handles the visual state, including the red overlay if missing, and click interaction!
-                button.showResultCollection(collection, (RecipeBookResults) (Object) this);
+                button.showResultCollection(bookmarked.get(recipeIndex), (RecipeBookResults) (Object) this);
                 button.visible = true;
             } else {
                 button.visible = false;
