@@ -5,6 +5,7 @@ import net.minecraft.client.gui.screen.ButtonTextures;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookResults;
 import net.minecraft.client.gui.screen.recipebook.RecipeBookWidget;
 import net.minecraft.client.gui.screen.recipebook.RecipeGroupButtonWidget;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.gui.widget.TexturedButtonWidget;
 import net.minecraft.util.Identifier;
 import net.wighugan.bookmarkrecipebook.BookmarkManager;
@@ -24,7 +25,7 @@ public abstract class RecipeBookWidgetMixin {
     @Shadow public abstract boolean isOpen();
     @Shadow public abstract void refreshResults(boolean resetCurrentPage);
     @Shadow private RecipeGroupButtonWidget currentTab;
-
+    @Shadow private TextFieldWidget searchField;
     @Unique private TexturedButtonWidget bookmarkTabButtonUnselected;
     @Unique private TexturedButtonWidget bookmarkTabButtonSelected;
 
@@ -123,14 +124,21 @@ public abstract class RecipeBookWidgetMixin {
                 break;
             }
         }
+        int newX;
+        int newY;
 
         if (lastVisibleTab != null) {
-            int newX = lastVisibleTab.getX();
-            int newY = lastVisibleTab.getY() + 27;
-            this.bookmarkTabButtonUnselected.setX(newX);
-            this.bookmarkTabButtonUnselected.setY(newY);
-            this.bookmarkTabButtonSelected.setX(newX);
-            this.bookmarkTabButtonSelected.setY(newY);
+            newX = lastVisibleTab.getX();
+            newY = lastVisibleTab.getY() + 27;
+        } else if (!this.tabButtons.isEmpty()) {
+            newX = this.searchField.getX() - 57;
+            newY = this.searchField.getY() - 11;
+        } else {
+            return;
         }
+        this.bookmarkTabButtonUnselected.setX(newX);
+        this.bookmarkTabButtonUnselected.setY(newY);
+        this.bookmarkTabButtonSelected.setX(newX);
+        this.bookmarkTabButtonSelected.setY(newY);
     }
 }
