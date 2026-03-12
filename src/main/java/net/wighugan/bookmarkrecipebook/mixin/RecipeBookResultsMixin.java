@@ -85,9 +85,30 @@ public abstract class RecipeBookResultsMixin {
         }
         List<RecipeResultCollection> bookmarked = getBookmarkedCollections();
 
+        net.minecraft.client.MinecraftClient client = net.minecraft.client.MinecraftClient.getInstance();
+        net.minecraft.screen.ScreenHandler currentScreen = client.player != null ? client.player.currentScreenHandler : null;
         // hide the recipes require 3x3
-        bookmarked.removeIf(collection -> collection == null || collection.getAllRecipes().isEmpty());
+        bookmarked.removeIf(collection -> {
+            // Remove it if it's empty
+            if (collection == null || collection.getAllRecipes().isEmpty()) return true;
 
+            // Figure out what type of recipe this is Crafting, Smelting, Smoking
+            net.minecraft.recipe.RecipeEntry<?> recipe = collection.getAllRecipes().get(0);
+            net.minecraft.recipe.RecipeType<?> recipeType = recipe.value().getType();
+
+            // Check if the recipe matches the block
+            if (currentScreen instanceof net.minecraft.screen.SmokerScreenHandler) {
+                return recipeType != net.minecraft.recipe.RecipeType.SMOKING;
+            } else if (currentScreen instanceof net.minecraft.screen.BlastFurnaceScreenHandler) {
+                return recipeType != net.minecraft.recipe.RecipeType.BLASTING;
+            } else if (currentScreen instanceof net.minecraft.screen.FurnaceScreenHandler) {
+                return recipeType != net.minecraft.recipe.RecipeType.SMELTING;
+            } else if (currentScreen instanceof net.minecraft.screen.CraftingScreenHandler || currentScreen instanceof net.minecraft.screen.PlayerScreenHandler) {
+                return recipeType != net.minecraft.recipe.RecipeType.CRAFTING;
+            }
+
+            return false;
+        });
         this.pageCount = (int)Math.ceil((double)bookmarked.size() / 20.0);
         if (this.pageCount < 1) this.pageCount = 1;
         if (this.pageCount <= this.currentPage) {
