@@ -131,14 +131,14 @@ public abstract class RecipeBookWidgetMixin {
             newX = lastVisibleTab.getX();
             newY = lastVisibleTab.getY() + 27;
         } else if (!this.tabButtons.isEmpty()) {
-            newX = this.searchField.getX() - 57;
+            newX = this.searchField.getX() - 52;
             newY = this.searchField.getY() - 11;
         } else {
             return;
         }
         this.bookmarkTabButtonUnselected.setX(newX);
         this.bookmarkTabButtonUnselected.setY(newY);
-        this.bookmarkTabButtonSelected.setX(newX);
+        this.bookmarkTabButtonSelected.setX(newX - 2);
         this.bookmarkTabButtonSelected.setY(newY);
     }
 }
