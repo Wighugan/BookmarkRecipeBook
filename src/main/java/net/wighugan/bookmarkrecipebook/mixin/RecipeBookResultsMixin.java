@@ -87,6 +87,7 @@ public abstract class RecipeBookResultsMixin {
 
         net.minecraft.client.MinecraftClient client = net.minecraft.client.MinecraftClient.getInstance();
         net.minecraft.screen.ScreenHandler currentScreen = client.player != null ? client.player.currentScreenHandler : null;
+
         // hide the recipes require 3x3
         bookmarked.removeIf(collection -> {
             // Remove it if it's empty
@@ -96,14 +97,34 @@ public abstract class RecipeBookResultsMixin {
             net.minecraft.recipe.RecipeEntry<?> recipe = collection.getAllRecipes().get(0);
             net.minecraft.recipe.RecipeType<?> recipeType = recipe.value().getType();
 
+            boolean isSmelting = recipeType == net.minecraft.recipe.RecipeType.SMELTING;
+            boolean isBlasting = recipeType == net.minecraft.recipe.RecipeType.BLASTING;
+            boolean isSmoking = recipeType == net.minecraft.recipe.RecipeType.SMOKING;
+
             // Check if the recipe matches the block
+            // Check if this recipe is categorized as Food
+            boolean isFood = false;
+            if (recipe.value() instanceof net.minecraft.recipe.AbstractCookingRecipe cookingRecipe) {
+                isFood = cookingRecipe.getCategory() == net.minecraft.recipe.book.CookingRecipeCategory.FOOD;
+            }
+
             if (currentScreen instanceof net.minecraft.screen.SmokerScreenHandler) {
-                return recipeType != net.minecraft.recipe.RecipeType.SMOKING;
+                // Show smoking recipe and show smelting recipes if they are foods
+                boolean validForSmoker = isSmoking || (isSmelting && isFood);
+                return !validForSmoker;
+
             } else if (currentScreen instanceof net.minecraft.screen.BlastFurnaceScreenHandler) {
-                return recipeType != net.minecraft.recipe.RecipeType.BLASTING;
+                // Show blasting recipes and show smelting recipes if they are not food
+                boolean validForBlastFurnace = isBlasting || (isSmelting && !isFood);
+                return !validForBlastFurnace;
+
             } else if (currentScreen instanceof net.minecraft.screen.FurnaceScreenHandler) {
-                return recipeType != net.minecraft.recipe.RecipeType.SMELTING;
+                // Show everything that can be cooked or smelted
+                boolean validForFurnace = isSmelting || isBlasting || isSmoking;
+                return !validForFurnace;
+
             } else if (currentScreen instanceof net.minecraft.screen.CraftingScreenHandler || currentScreen instanceof net.minecraft.screen.PlayerScreenHandler) {
+                // Show standard crafting recipes
                 return recipeType != net.minecraft.recipe.RecipeType.CRAFTING;
             }
 

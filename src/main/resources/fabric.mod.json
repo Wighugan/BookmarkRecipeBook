@@ -1,7 +1,7 @@
 {
 	"schemaVersion": 1,
 	"id": "bookmark-recipe-book",
-	"version": "${version}",
+	"version": "1.21.1",
 	"name": "Bookmark recipe book",
 	"description": "Bookmark for the Recipe Book",
 	"authors": [
@@ -9,9 +9,9 @@
 	],
 	"contact": {
 		"homepage": "",
-		"sources": ""
+		"sources": "https://github.com/Wighugan/BookmarkRecipeBook"
 	},
-	"license": "MPL",
+	"license": "Mozilla Public License 2.0",
 	"icon": "assets/bookmark-recipe-book/icon.png",
 	"environment": "*",
 	"entrypoints": {
