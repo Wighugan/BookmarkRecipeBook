@@ -1,6 +1,6 @@
 ⭐ Bookmark Recipe Book
 
-This is the mod that help you save the recipes you want to craft.
+This is the mod that help you save time when crafting by adding a bookmark tab that save the recipes you want in it.
 
 ✨ Features
 
