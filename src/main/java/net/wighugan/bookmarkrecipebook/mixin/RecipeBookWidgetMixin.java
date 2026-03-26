@@ -35,7 +35,7 @@ public abstract class RecipeBookWidgetMixin {
 
         if (this.tabButtons == null || this.tabButtons.isEmpty()) return;
 
-        int tempWidth = this.tabButtons.get(0).getWidth();
+        /*int tempWidth = this.tabButtons.get(0).getWidth();
         int tempHeight = this.tabButtons.get(0).getHeight();
         RecipeGroupButtonWidget lastTab = this.tabButtons.get(this.tabButtons.size() - 1);
 
@@ -57,7 +57,49 @@ public abstract class RecipeBookWidgetMixin {
         this.bookmarkTabButtonSelected = new TexturedButtonWidget(
                 0, 0, tempWidth, tempHeight, SELECTED_TEXTURES,
                 button -> this.onBookmarkTabClicked()
+        );*/
+        int tempWidth = 35;
+        int tempHeight = 27;
+        if (this.tabButtons != null && !this.tabButtons.isEmpty()) {
+            tempWidth = this.tabButtons.get(0).getWidth();
+            tempHeight = this.tabButtons.get(0).getHeight();
+        }
+
+        // 1. Grab the exact background textures that Vanilla Minecraft uses!
+        // This makes your mod 100% compatible with custom GUI resource packs.
+        ButtonTextures UNSELECTED_TAB_TEXTURES = new ButtonTextures(
+                Identifier.of("minecraft", "recipe_book/tab"),
+                Identifier.of("minecraft", "recipe_book/tab")
         );
+
+        ButtonTextures SELECTED_TAB_TEXTURES = new ButtonTextures(
+                Identifier.of("minecraft", "recipe_book/tab_selected"),
+                Identifier.of("minecraft", "recipe_book/tab_selected")
+        );
+
+        Identifier STAR_ICON = Identifier.of("bookmark-recipe-book", "recipe_book/star");
+
+        this.bookmarkTabButtonUnselected = new TexturedButtonWidget(
+                0, 0, tempWidth, tempHeight, UNSELECTED_TAB_TEXTURES,
+                button -> this.onBookmarkTabClicked()
+        ) {
+            @Override
+            public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+                super.renderWidget(context, mouseX, mouseY, delta);
+                context.drawGuiTexture(STAR_ICON, this.getX() + 9, this.getY() + 5, 16, 16);
+            }
+        };
+
+        this.bookmarkTabButtonSelected = new TexturedButtonWidget(
+                0, 0, tempWidth, tempHeight, SELECTED_TAB_TEXTURES,
+                button -> this.onBookmarkTabClicked()
+        ) {
+            @Override
+            public void renderWidget(DrawContext context, int mouseX, int mouseY, float delta) {
+                super.renderWidget(context, mouseX, mouseY, delta);
+                context.drawGuiTexture(STAR_ICON, this.getX() + 9, this.getY() + 5, 16, 16);
+            }
+        };
     }
 
     @Inject(method = "render", at = @At("TAIL"))
