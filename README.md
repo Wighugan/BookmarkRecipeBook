@@ -27,3 +27,7 @@ Minecraft Version: 1.21.1
 Mod Loader: Fabric
 
 Client-Side: This mod is completely client-side! You can install it on your computer and use it on vanilla multiplayer servers without the server needing to install it.
+
+📝Note
+
+The mod compatibility with any resource packs
